@@ -63,6 +63,18 @@ export default function App() {
   // Global View/Edit State Toggle
   const [editMode, setEditMode] = useState<boolean>(false);
 
+  // Site password and unlock states (the default password is encoded to prevent plain text display)
+  const [sitePassword, setSitePassword] = useState<string>(() => {
+    const saved = localStorage.getItem("thess_cult_hub_password");
+    return saved ? saved : atob("Y3VsdDIwMjY="); // Default password is "cult2026", decoded on the fly
+  });
+  const [isUnlocked, setIsUnlocked] = useState<boolean>(() => {
+    return sessionStorage.getItem("thess_cult_hub_unlocked") === "true";
+  });
+  const [passwordInput, setPasswordInput] = useState<string>("");
+  const [passwordError, setPasswordError] = useState<string>("");
+  const [showPasswordInEdit, setShowPasswordInEdit] = useState<boolean>(false);
+
   // Dynamic Tabs & Sidebar navigation containing default Greek chapters & user-added headings
   const [customTabs, setCustomTabs] = useState<CustomSection[]>(() => {
     const saved = localStorage.getItem("thess_cult_hub_custom_tabs");
@@ -906,6 +918,77 @@ export default function App() {
     };
   }, [visualSystem]);
 
+  if (!isUnlocked) {
+    const handleLoginSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      if (passwordInput === sitePassword) {
+        setIsUnlocked(true);
+        sessionStorage.setItem("thess_cult_hub_unlocked", "true");
+        setPasswordError("");
+      } else {
+        setPasswordError("Λανθασμένος κωδικός πρόσβασης! Παρακαλώ δοκιμάστε ξανά.");
+      }
+    };
+
+    return (
+      <div className="min-h-screen bg-[#0c0d0e] flex items-center justify-center p-4 relative overflow-hidden font-sans select-none">
+        {/* Glow Effects */}
+        <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="w-full max-w-md bg-[#121315] border border-zinc-800/80 rounded-2xl p-6 sm:p-8 shadow-2xl relative z-10 transition-all duration-300">
+          <div className="text-center mb-6">
+            <div className="w-14 h-14 bg-zinc-900 border border-zinc-800 rounded-2xl flex items-center justify-center mx-auto mb-4 text-amber-500 shadow-lg shadow-amber-500/5">
+              <Sparkles className="w-6 h-6 animate-pulse" />
+            </div>
+            <h1 className="text-xl font-extrabold text-white tracking-tight">Thess Cult Hub</h1>
+            <p className="text-xs text-zinc-500 mt-1 font-mono uppercase tracking-wider">Σύμβουλος Επιχειρησιακού Σχεδίου</p>
+          </div>
+
+          <div className="p-4 bg-zinc-950/40 border border-zinc-900 rounded-xl mb-6 text-center">
+            <p className="text-xs text-zinc-400">
+              Η εφαρμογή είναι κλειδωμένη για λόγους ασφαλείας. Παρακαλώ εισάγετε τον κωδικό πρόσβασης.
+            </p>
+          </div>
+
+          <form onSubmit={handleLoginSubmit} className="space-y-4">
+            <div>
+              <label className="block text-[10px] uppercase font-mono text-zinc-500 tracking-wider mb-1.5 font-bold">
+                Κωδικός Πρόσβασης
+              </label>
+              <input
+                type="password"
+                placeholder="• • • • • • • •"
+                value={passwordInput}
+                onChange={(e) => setPasswordInput(e.target.value)}
+                className="w-full bg-[#1e2022] text-zinc-100 border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500 transition font-mono tracking-widest text-center"
+                autoFocus
+              />
+            </div>
+
+            {passwordError && (
+              <p className="text-xs text-rose-500 text-center font-semibold bg-rose-500/10 py-2.5 px-3 rounded-lg border border-rose-500/20">
+                {passwordError}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              className="w-full bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold py-3.5 px-4 rounded-xl text-xs uppercase tracking-wider transition shadow-lg shadow-amber-500/10 cursor-pointer flex items-center justify-center gap-2"
+            >
+              <span>Είσοδος</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </form>
+
+          <div className="text-center mt-6 text-[10px] text-zinc-600 font-mono tracking-widest">
+            SECURE ACCESS PORTAL • THESS CULT HUB
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#0c0d0e] text-[#f4f4f5] font-sans flex flex-col selection:bg-zinc-800 selection:text-white relative overflow-x-hidden">
       
@@ -1289,6 +1372,35 @@ export default function App() {
             >
               <RotateCcw className="w-4 h-4" />
             </button>
+
+            {/* Password Manager under editMode */}
+            {editMode && (
+              <div className="flex items-center gap-1.5 bg-zinc-900 border border-zinc-800 rounded-lg p-1 px-2.5">
+                <span className="text-[10px] uppercase font-mono text-zinc-400 tracking-wider font-bold">ΚΩΔΙΚΟΣ SITE:</span>
+                <div className="relative flex items-center">
+                  <input
+                    type={showPasswordInEdit ? "text" : "password"}
+                    value={sitePassword}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setSitePassword(val);
+                      localStorage.setItem("thess_cult_hub_password", val);
+                    }}
+                    placeholder="Κωδικός"
+                    className="bg-[#1e2022] text-zinc-200 border border-zinc-800 rounded px-2 py-0.5 w-28 focus:outline-none focus:border-amber-500 font-mono text-[11px]"
+                    title="Αλλάξτε τον κωδικό πρόσβασης για είσοδο στην εφαρμογή"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPasswordInEdit(!showPasswordInEdit)}
+                    className="ml-1.5 text-[10px] text-amber-500 hover:text-amber-400 font-mono transition"
+                    title={showPasswordInEdit ? "Απόκρυψη" : "Εμφάνιση"}
+                  >
+                    {showPasswordInEdit ? "Κρύψε" : "Δείξε"}
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Combined Mini Stats */}
             <div className="hidden lg:flex items-center gap-3 text-xs font-mono bg-zinc-900/40 p-1.5 px-3 rounded-lg border border-zinc-800/80">
