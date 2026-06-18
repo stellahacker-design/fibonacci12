@@ -1,0 +1,10 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Hubs collection security rules
+    match /hubs/{hubId} {
+      // Allow read and write access to all users (publicly shared edit link)
+      allow read, write: if true;
+    }
+  }
+}
