@@ -1,0 +1,6 @@
+{
+  "name": "Thessaloniki Culture Cafe Business Hub",
+  "description": "An interactive, premium business planning and operational workflow dashboard for an art-focused, street-culture community cafe and mini-ramp in Thessaloniki.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
